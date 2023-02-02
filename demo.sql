@@ -2,20 +2,13 @@
 
 PRAGMA foreign_keys = ON;
 
-DROP TABLE IF EXISTS ingredients_recipes;
-DROP TABLE IF EXISTS ingredients;
-DROP TABLE IF EXISTS categories_recipes;
-DROP TABLE IF EXISTS recipes;
-DROP TABLE IF EXISTS categories;
-DROP TABLE IF EXISTS animals;
-
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     username VARCHAR(150) NOT NULL UNIQUE,
     email VARCHAR(150) NOT NULL UNIQUE
 );
 
-CREATE TABLE recipes (
+CREATE TABLE IF NOT EXISTS recipes (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     title VARCHAR(150) NOT NULL,
     slug VARCHAR(150) NOT NULL,
@@ -25,12 +18,12 @@ CREATE TABLE recipes (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE categories (
+CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     title VARCHAR(150) NOT NULL
 );
 
-CREATE TABLE categories_recipes(
+CREATE TABLE IF NOT EXISTS categories_recipes(
     recipe_id INTEGER NOT NULL,
     category_id INTEGER NOT NULL,
     FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -39,13 +32,13 @@ CREATE TABLE categories_recipes(
     UNIQUE(recipe_id, category_id)
 );
 
-CREATE TABLE ingredients(
+CREATE TABLE IF NOT EXISTS ingredients(
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     name VARCHAR(150),
     usage_count INTEGER DEFAULT 0 NOT NULL
 );
 
-CREATE TABLE ingredients_recipes(
+CREATE TABLE IF NOT EXISTS ingredients_recipes(
     recipe_id INTEGER NOT NULL,
     ingredient_id INTEGER NOT NULL,
     quantity INTEGER,
@@ -56,14 +49,7 @@ CREATE TABLE ingredients_recipes(
     UNIQUE(recipe_id, ingredient_id)
 );
 
-CREATE TABLE animals (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    parent_id INTEGER,
-    FOREIGN KEY (parent_id) REFERENCES animals(id) ON DELETE CASCADE 
-);
-
-CREATE TABLE animals (
+CREATE TABLE IF NOT EXISTS animals (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     name VARCHAR(255) NOT NULL,
     parent_id INTEGER,
@@ -102,14 +88,18 @@ WITH RECURSIVE parent (id, name, parent_id) AS (
 
 SELECT * FROM parent;
 
-SELECT sql FROM sqlite_master WHERE type='table' AND name='animals'; 
-
-
-
-
-
-
-
-
+SELECT * FROM (
+    SELECT 
+        c.title AS categories, 
+        r.title AS recettes, 
+        i.name AS ingredients,
+        ROW_NUMBER() OVER (PARTITION BY cr.category_id, ir.recipe_id) AS row_number
+    FROM categories c
+        LEFT JOIN categories_recipes cr ON cr.category_id = c.id
+        LEFT JOIN recipes r ON cr.recipe_id = r.id
+        LEFT JOIN ingredients_recipes ir ON ir.recipe_id = r.id
+        LEFT JOIN ingredients i ON ir.ingredient_id = i.id
+) AS t
+WHERE t.row_number < 4;
 
 
