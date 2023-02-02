@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS ingredients;
 DROP TABLE IF EXISTS categories_recipes;
 DROP TABLE IF EXISTS recipes;
 DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS animals;
 
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -62,11 +63,46 @@ CREATE TABLE animals (
     FOREIGN KEY (parent_id) REFERENCES animals(id) ON DELETE CASCADE 
 );
 
+CREATE TABLE animals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    parent_id INTEGER,
+    FOREIGN KEY (parent_id) REFERENCES animals(id) ON DELETE CASCADE 
+);
 
+INSERT INTO animals
+VALUES (1, 'Mammifère', NULL),
+       (2, 'Chien', 1),
+       (3, 'Chat', 1),
+       (4, 'Singe', 1),
+       (5, 'Gorille', 4),
+       (6, 'Chimpanzé', 4),
+       (7, 'Shiba', 2),
+       (8, 'Corgi', 2),
+       (9, 'Labrador', 2),
+       (10, 'Poisson', NULL),
+       (11, 'Requin', 10),
+       (12, 'Requin blanc', 11),
+       (13, 'Grand requin blanc', 12),
+       (14, 'Petit requin blanc', 12),
+       (15, 'Requin marteau', 11),
+       (16, 'Requin tigre', 11),
+       (17, 'Poisson rouge', 10),
+       (18, 'Poisson chat', 10);
 
+SELECT * FROM animals;
 
+WITH RECURSIVE parent (id, name, parent_id) AS (
+    SELECT id, name, parent_id FROM animals WHERE id = 16
+    UNION ALL 
+    SELECT a.id, a.name, a.parent_id 
+    FROM animals a, parent p 
+    WHERE a.id = p.parent_id
+)
 
+SELECT * FROM parent;
 
+SELECT sql FROM sqlite_master WHERE type='table' AND name='animals'; 
 
 
 
